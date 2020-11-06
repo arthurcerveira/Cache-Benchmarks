@@ -16,8 +16,11 @@ ASSOC_2 = (1, 2, 4, 256)
 # Experiment 2
 REPL = ('l', 'f', 'r')
 
+# Experiment 3
+BSIZE = (16, 32, 64, 128)
 
-def get_misses(output, cache):
+
+def parse_output(output, cache):
     for line in output.split('\n'):
         if "sim_num_insn" in line:
             _, instructions, *_ = line.split()
@@ -50,20 +53,85 @@ def first_experiment(total, assocs):
                 output = subprocess.run(
                     command.split(), capture_output=True, text=True).stderr
 
-                instructions, loads_stores, misses, miss_rate, *_ = get_misses(
+                instructions, loads_stores, misses, miss_rate, *_ = parse_output(
                     output, cache_experiment)
                 line = f"{benchmark},{cache_experiment},{instructions},{loads_stores},{nsets},{assoc},{misses},{miss_rate}\n"
 
-                with open('../../first_experiment.csv', 'a') as output_file:
+                with open('../../Experiment-1.csv', 'a') as output_file:
+                    output_file.write(line)
+
+
+def second_experiment(repls):
+    for benchmark, benchmark_file in BENCHMARKS.items():
+        for cache_experiment, cache in CACHE:
+            for repl in repls:
+                command = f"./sim-cache -cache:{cache_experiment} {cache_experiment}:1:32:256:{repl} "\
+                    + f"-cache:il2 none -cache:{cache} {cache}:1:32:256:l -cache:dl2 none -tlb:itlb none "\
+                    + f"-tlb:dtlb none {benchmark_file}"
+
+                output = subprocess.run(
+                    command.split(), capture_output=True, text=True).stderr
+
+                instructions, loads_stores, misses, miss_rate, replacements = parse_output(
+                    output, cache_experiment)
+                line = f"{benchmark},{cache_experiment},{instructions},{loads_stores},{repl},{misses},{replacements},{miss_rate}\n"
+
+                with open('../../Experiment-2.csv', 'a') as output_file:
+                    output_file.write(line)
+
+
+def third_experiment(assoc, bsizes):
+    nsets = int(256 / assoc)
+
+    for benchmark, benchmark_file in BENCHMARKS.items():
+        for cache_experiment, cache in CACHE:
+            for bsize in bsizes:
+                command = f"./sim-cache -cache:{cache_experiment} {cache_experiment}:{nsets}:{bsize}:{assoc}:l "\
+                    + f"-cache:il2 none -cache:{cache} {cache}:256:32:1:l -cache:dl2 none -tlb:itlb none "\
+                    + f"-tlb:dtlb none {benchmark_file}"
+
+                output = subprocess.run(
+                    command.split(), capture_output=True, text=True).stderr
+
+                instructions, loads_stores, misses, miss_rate, *_ = parse_output(
+                    output, cache_experiment)
+                line = f"{benchmark},{cache_experiment},{instructions},{loads_stores},{assoc},{bsize},{misses},{miss_rate}\n"
+
+                with open('../../Experiment-3.csv', 'a') as output_file:
                     output_file.write(line)
 
 
 if __name__ == "__main__":
     os.chdir(SIMPLESIM)
 
-    with open('../../first_experiment.csv', 'w') as output_file:
+    # Experiment-1
+    print(
+        f"Experiment-1: {len(ASSOC_1) * len(CACHE) * len(BENCHMARKS) * 2} executions...")
+
+    with open('../../Experiment-1.csv', 'w') as output_file:
         output_file.write(
             "Benchmark,Cache,instructions,Loads/Stores,nsets,assoc,misses,miss_rate\n")
 
     first_experiment(128, ASSOC_1)
     first_experiment(256, ASSOC_2)
+
+    # Experiment-2
+    print(
+        f"Experiment-2: {len(REPL) * len(CACHE) * len(BENCHMARKS)} executions...")
+
+    with open('../../Experiment-2.csv', 'w') as output_file:
+        output_file.write(
+            "Benchmark,Cache,instructions,Loads/Stores,repl,misses,replacements,miss_rate\n")
+
+    second_experiment(REPL)
+
+    # Experiment-3
+    print(
+        f"Experiment-3: {len(BSIZE) * len(CACHE) * len(BENCHMARKS) * 2} executions...")
+
+    with open('../../Experiment-3.csv', 'w') as output_file:
+        output_file.write(
+            "Benchmark,Cache,instructions,Loads/Stores,assoc,bsize,misses,miss_rate\n")
+
+    third_experiment(1, BSIZE)
+    third_experiment(4, BSIZE)
