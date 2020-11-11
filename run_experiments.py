@@ -101,6 +101,52 @@ def third_experiment(assoc, bsizes):
                     output_file.write(line)
 
 
+def fourth_experiment(nsets):
+    split_nsets = int(nsets / 2)
+
+    for benchmark, benchmark_file in BENCHMARKS.items():
+        # Split cache
+        command = f"./sim-cache -cache:il1 il1:{split_nsets}:64:1:l "\
+            + f"-cache:il2 none -cache:dl1 dl1:{split_nsets}:64:1:l -cache:dl2 none -tlb:itlb none "\
+            + f"-tlb:dtlb none {benchmark_file}"
+
+        output = subprocess.run(
+            command.split(), capture_output=True, text=True).stderr
+
+        # Get il1 results
+        instructions, loads_stores, misses, miss_rate, *_ = parse_output(
+            output, "il1")
+
+        line = f"{benchmark},il1,{instructions},{loads_stores},{split_nsets},{misses},{miss_rate}\n"
+
+        with open('../../Experiment-4.csv', 'a') as output_file:
+            output_file.write(line)
+
+        # Get dl1 results
+        _, _, misses, miss_rate, *_ = parse_output(
+            output, "dl1")
+
+        line = f"{benchmark},dl1,{instructions},{loads_stores},{split_nsets},{misses},{miss_rate}\n"
+
+        with open('../../Experiment-4.csv', 'a') as output_file:
+            output_file.write(line)
+
+        # Unified cache
+        command = f"./sim-cache -cache:il1 dl1 -cache:dl1 ul1:{nsets}:64:1:l -cache:il2 none "\
+            + f"-cache:dl2 none -tlb:itlb none -tlb:dtlb none {benchmark_file}"
+
+        output = subprocess.run(
+            command.split(), capture_output=True, text=True).stderr
+
+        instructions, loads_stores, misses, miss_rate, *_ = parse_output(
+            output, "ul1")
+
+        line = f"{benchmark},ul1,{instructions},{loads_stores},{nsets},{misses},{miss_rate}\n"
+
+        with open('../../Experiment-4.csv', 'a') as output_file:
+            output_file.write(line)
+
+
 if __name__ == "__main__":
     os.chdir(SIMPLESIM)
 
@@ -135,3 +181,12 @@ if __name__ == "__main__":
 
     third_experiment(1, BSIZE)
     third_experiment(4, BSIZE)
+
+    # Experiment-4
+    print("Experiment 4: 4 executions...")
+
+    with open('../../Experiment-4.csv', 'w') as output_file:
+        output_file.write(
+            "Benchmark,Cache,instructions,Loads/Stores,nsets,misses,miss_rate\n")
+
+    fourth_experiment(256)
