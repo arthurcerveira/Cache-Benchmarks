@@ -9,6 +9,8 @@ BENCHMARKS = {
     "VORTEX": "vortex.ss tiny.in"
 }
 
+CWD = os.getcwd()
+
 # Experiment 1
 ASSOC_1 = (1, 2, 4, 128)
 ASSOC_2 = (1, 2, 4, 256)
@@ -57,7 +59,7 @@ def first_experiment(total, assocs):
                     output, cache_experiment)
                 line = f"{benchmark},{cache_experiment},{instructions},{loads_stores},{nsets},{assoc},{misses},{miss_rate}\n"
 
-                with open('../../Experiment-1.csv', 'a') as output_file:
+                with open(f'{CWD}/Experiment-1.csv', 'a') as output_file:
                     output_file.write(line)
 
 
@@ -76,7 +78,7 @@ def second_experiment(repls):
                     output, cache_experiment)
                 line = f"{benchmark},{cache_experiment},{instructions},{loads_stores},{repl},{misses},{replacements},{miss_rate}\n"
 
-                with open('../../Experiment-2.csv', 'a') as output_file:
+                with open(f'{CWD}/Experiment-2.csv', 'a') as output_file:
                     output_file.write(line)
 
 
@@ -97,7 +99,7 @@ def third_experiment(assoc, bsizes):
                     output, cache_experiment)
                 line = f"{benchmark},{cache_experiment},{instructions},{loads_stores},{assoc},{bsize},{misses},{miss_rate}\n"
 
-                with open('../../Experiment-3.csv', 'a') as output_file:
+                with open(f'{CWD}/Experiment-3.csv', 'a') as output_file:
                     output_file.write(line)
 
 
@@ -119,7 +121,7 @@ def fourth_experiment(nsets):
 
         line = f"{benchmark},il1,{instructions},{loads_stores},{split_nsets},{misses},{miss_rate}\n"
 
-        with open('../../Experiment-4.csv', 'a') as output_file:
+        with open(f'{CWD}/Experiment-4.csv', 'a') as output_file:
             output_file.write(line)
 
         # Get dl1 results
@@ -128,7 +130,7 @@ def fourth_experiment(nsets):
 
         line = f"{benchmark},dl1,{instructions},{loads_stores},{split_nsets},{misses},{miss_rate}\n"
 
-        with open('../../Experiment-4.csv', 'a') as output_file:
+        with open(f'{CWD}/Experiment-4.csv', 'a') as output_file:
             output_file.write(line)
 
         # Unified cache
@@ -143,7 +145,7 @@ def fourth_experiment(nsets):
 
         line = f"{benchmark},ul1,{instructions},{loads_stores},{nsets},{misses},{miss_rate}\n"
 
-        with open('../../Experiment-4.csv', 'a') as output_file:
+        with open(f'{CWD}/Experiment-4.csv', 'a') as output_file:
             output_file.write(line)
 
 
@@ -154,7 +156,7 @@ if __name__ == "__main__":
     print(
         f"Experiment-1: {len(ASSOC_1) * len(CACHE) * len(BENCHMARKS) * 2} executions...")
 
-    with open('../../Experiment-1.csv', 'w') as output_file:
+    with open(f'{CWD}/Experiment-1.csv', 'w') as output_file:
         output_file.write(
             "Benchmark,Cache,instructions,Loads/Stores,nsets,assoc,misses,miss_rate\n")
 
@@ -165,7 +167,7 @@ if __name__ == "__main__":
     print(
         f"Experiment-2: {len(REPL) * len(CACHE) * len(BENCHMARKS)} executions...")
 
-    with open('../../Experiment-2.csv', 'w') as output_file:
+    with open(f'{CWD}/Experiment-2.csv', 'w') as output_file:
         output_file.write(
             "Benchmark,Cache,instructions,Loads/Stores,repl,misses,replacements,miss_rate\n")
 
@@ -175,7 +177,7 @@ if __name__ == "__main__":
     print(
         f"Experiment-3: {len(BSIZE) * len(CACHE) * len(BENCHMARKS) * 2} executions...")
 
-    with open('../../Experiment-3.csv', 'w') as output_file:
+    with open(f'{CWD}/Experiment-3.csv', 'w') as output_file:
         output_file.write(
             "Benchmark,Cache,instructions,Loads/Stores,assoc,bsize,misses,miss_rate\n")
 
@@ -183,9 +185,9 @@ if __name__ == "__main__":
     third_experiment(4, BSIZE)
 
     # Experiment-4
-    print("Experiment 4: 4 executions...")
+    print(f"Experiment 4: {len(BENCHMARKS) * 2} executions...")
 
-    with open('../../Experiment-4.csv', 'w') as output_file:
+    with open(f'{CWD}/Experiment-4.csv', 'w') as output_file:
         output_file.write(
             "Benchmark,Cache,instructions,Loads/Stores,nsets,misses,miss_rate\n")
 
